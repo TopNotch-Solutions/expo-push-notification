@@ -22,3 +22,51 @@ NB: https://expo.dev/notifications is used to test push notification with expo
 20. Add the google-services.json in the gitignore file and add /iso and /android as well
 21. Create a easignore file and copy the content from the gitignore file but remove the google-services.json
 22. In the app.json add "googleServicesFile":"./google-services.json"
+
+We are ready to send push notification at this stage:::::::::
+
+23. npx expo install expo-notifications expo-device expo-constants
+24. Create two folders context and utils
+25. In the utils create a file called registerForPushNotificationsAsync
+
+NB: Once you are done with configuration build the app again using npx eas-cli build --platform android --profile development
+
+
+Sending push notification using expo push notificatio controller:
+
+const { Expo } = require("expo-server-sdk");
+
+// Create a new Expo SDK client
+const expo = new Expo();
+
+async function sendPushNotification(expoPushToken, message, data = {}) {
+    // Check if the push token is valid
+    if (!Expo.isExpoPushToken(expoPushToken)) {
+        console.error(`Invalid Expo push token: ${expoPushToken}`);
+        return;
+    }
+
+    // Construct the message
+    const messages = [
+        {
+            to: expoPushToken,
+            sound: "default", // Notification sound
+            title: "New Notification!", // Title of the notification
+            body: message, // Body text
+            data: data, // Additional data payload
+        },
+    ];
+
+    try {
+        // Send the notification
+        const ticket = await expo.sendPushNotificationsAsync(messages);
+        console.log("Push notification sent:", ticket);
+    } catch (error) {
+        console.error("Error sending push notification:", error);
+    }
+}
+
+const expoPushToken = "ExponentPushToken[Lq88PbG5Tf1xLJjxyGCz1c]";
+sendPushNotification(expoPushToken, "Hello! This is a test notification.", { screen: "home" });
+
+module.exports = { sendPushNotification };
